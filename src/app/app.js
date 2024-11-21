@@ -4,6 +4,7 @@ import connectDatabase from "../config/database.js";
 const app = express();
 
 // Middleware
+app.use(express.json());
 
 // Connect to database
 connectDatabase();

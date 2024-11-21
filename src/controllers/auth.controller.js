@@ -71,8 +71,60 @@ export const signup = async (req, res) => {
 	}
 };
 
-export const login = (req, res) => {
-	res.send("Login route");
+export const login = async (req, res) => {
+	const { email, password } = req.body;
+
+	try {
+		// Validate input fields
+		if (!email || !password) {
+			return res.status(400).json({
+				status: "fail",
+				message: "Email and password are required.",
+			});
+		}
+
+		// Check if user exists
+		const user = await User.findOne({ email });
+		if (!user) {
+			return res.status(401).json({
+				status: "fail",
+				message: "Invalid email or password.",
+			});
+		}
+
+		// Verify the password
+		const isPasswordCorrect = await bcrypt.compare(password, user.password);
+		if (!isPasswordCorrect) {
+			return res.status(401).json({
+				status: "fail",
+				message: "Invalid email or password.",
+			});
+		}
+
+		// Generate a token for the user
+		const token = generateToken(user._id, res);
+
+		// Respond with user details and token
+		return res.status(200).json({
+			status: "success",
+			message: "Login successful.",
+			user: {
+				_id: user._id,
+				fullName: user.fullName,
+				email: user.email,
+				phone: user.phone,
+			},
+			token,
+		});
+	} catch (error) {
+		console.error("Login error:", error.message);
+
+		// Handle generic server errors
+		return res.status(500).json({
+			status: "error",
+			message: "Internal server error. Please try again later.",
+		});
+	}
 };
 
 export const logout = (req, res) => {

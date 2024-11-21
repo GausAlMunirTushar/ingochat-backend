@@ -128,5 +128,26 @@ export const login = async (req, res) => {
 };
 
 export const logout = (req, res) => {
-	res.send("Logout route");
+	try {
+		// Clear the token cookie
+		res.clearCookie("jwt", {
+			httpOnly: true,
+			secure: process.env.NODE_ENV === "production", // Secure in production
+			sameSite: "strict",
+		});
+
+		// Send a response indicating successful logout
+		return res.status(200).json({
+			status: "success",
+			message: "Logout successful.",
+		});
+	} catch (error) {
+		console.error("Logout error:", error.message);
+
+		// Handle generic server errors
+		return res.status(500).json({
+			status: "error",
+			message: "Internal server error. Please try again later.",
+		});
+	}
 };
